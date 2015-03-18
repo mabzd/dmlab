@@ -3,11 +3,11 @@ import Orange
 def print_instance(instance):
 	for attribute in instance:
 		print "{0:<10}'{1}'".format(attribute.variable.name, attribute.value)
+	print
 
 def print_instances(instances):
 	for instance in instances:
 		print_instance(instance)
-		print
 
 def print_table_info(table):
 	format_line = "{0:<3} {1:<10} {2:<12} {3:<10} {4:<10}"
@@ -35,12 +35,11 @@ def calc_modal(table, attribute):
 	return max(histogram, key=histogram.get)
 
 def calc_average_or_modal(table, attribute):
-	avg_modal = None
 	if attribute.var_type == Orange.feature.Type.Continuous:
-		avg_modal = round(calc_average(table, attribute), 2)
-	elif attribute.var_type == Orange.feature.Type.Discrete:
-		avg_modal = calc_modal(table, attribute)
-	return avg_modal
+		return round(calc_average(table, attribute), 2)
+	if attribute.var_type == Orange.feature.Type.Discrete:
+		return calc_modal(table, attribute)
+	return None
 
 def count_special(table, attribute):
 	return sum([1 for instance in table if instance[attribute].is_special()])
@@ -58,13 +57,23 @@ def random_instances(table, n):
 
 table = Orange.data.Table("bridges.tab")
 
-instances = random_instances(table, 3)
+# 1) print example instances
+print_instance(table[0])
+print_instance(table[3])
+print_instance(table[40])
+
+# 6) print random instances sample (5%)
+sample_size = int(len(table)*0.05)
+instances = random_instances(table, sample_size)
 print_instances(instances)
 
+# 2) print values and histogram for class attribute
 if table.domain.class_var != None:
 	print "Histogram for class attribute: {}".format(table.domain.class_var.name)
+	print "Class attribute possible values: {}".format(",".join(table.domain.class_var.values))
 	print_attribute_histogram(table, table.domain.class_var)
 
+# 3, 4, 5) print name, type, average/modal value and number of unknown values for each attribute.
 print "\nAttributes count: {}".format(len(table.domain))
 print_table_info(table)
 
